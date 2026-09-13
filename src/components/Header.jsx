@@ -73,9 +73,9 @@ const Header = ({ currentUser, setSidebarOpen, onSearchClick }) => {
       <div className="flex items-center gap-4">
         <button 
           onClick={() => setSidebarOpen(prev => !prev)}
-          className="text-text-secondary hover:text-primary md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft border-2 border-primary text-primary shadow-[2px_2px_0px_0px_rgba(18,60,53,1)] transition-all hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[1px_1px_0px_0px_rgba(18,60,53,1)] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none md:hidden"
         >
-          <Menu size={24} />
+          <Menu size={20} strokeWidth={2.5} />
         </button>
         <Link to="/" className="flex items-center gap-2 md:hidden">
           <Logo className="h-8 w-8 drop-shadow-md" />
