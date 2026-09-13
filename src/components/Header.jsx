@@ -9,8 +9,18 @@ import Logo from './Logo';
 const Header = ({ currentUser, setSidebarOpen, onSearchClick }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [clearedAt, setClearedAt] = useState(() => {
+    return parseInt(localStorage.getItem('banklink_notif_cleared')) || 0;
+  });
   const notifRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleMarkAsRead = (e) => {
+    e.stopPropagation();
+    const now = Date.now();
+    setClearedAt(now);
+    localStorage.setItem('banklink_notif_cleared', now.toString());
+  };
 
   useEffect(() => {
     // Fetch pending loans and recent payments for notifications
@@ -67,18 +77,14 @@ const Header = ({ currentUser, setSidebarOpen, onSearchClick }) => {
     return '1d ago';
   };
 
+  const unreadCount = notifications.filter(n => n.time > clearedAt).length;
+
   return (
-    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border-default bg-surface/95 px-4 backdrop-blur-xl md:px-6">
-      {/* Mobile Menu Toggle & Logo */}
+    <header className="sticky top-0 z-40 flex h-14 md:h-16 w-full items-center justify-between border-b border-border-default bg-surface/95 px-4 backdrop-blur-xl md:px-6">
+      {/* Mobile Logo */}
       <div className="flex items-center gap-4">
-        <button 
-          onClick={() => setSidebarOpen(prev => !prev)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft border-2 border-primary text-primary shadow-[2px_2px_0px_0px_rgba(18,60,53,1)] transition-all hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[1px_1px_0px_0px_rgba(18,60,53,1)] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none md:hidden"
-        >
-          <Menu size={20} strokeWidth={2.5} />
-        </button>
         <Link to="/" className="flex items-center gap-2 md:hidden">
-          <Logo className="h-8 w-8 drop-shadow-md" />
+          <Logo className="h-7 w-7 drop-shadow-md" />
           <span className="text-lg font-bold tracking-tight text-primary">BankLink</span>
         </Link>
       </div>
@@ -104,9 +110,9 @@ const Header = ({ currentUser, setSidebarOpen, onSearchClick }) => {
             className="relative flex items-center justify-center text-text-secondary hover:text-primary transition-colors p-1"
           >
             <Bell size={20} />
-            {notifications.length > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -right-0 -top-0 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white ring-2 ring-surface">
-                {notifications.length}
+                {unreadCount}
               </span>
             )}
           </button>
@@ -116,7 +122,12 @@ const Header = ({ currentUser, setSidebarOpen, onSearchClick }) => {
             <div className="absolute right-0 mt-3 w-80 rounded-xl border border-border-default bg-surface shadow-2xl py-2 z-50">
               <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
                 <span className="font-semibold text-text-primary text-sm">Notifications</span>
-                <span className="text-[10px] bg-primary-soft text-primary font-bold px-2 py-0.5 rounded-full">{notifications.length} New</span>
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button onClick={handleMarkAsRead} className="text-[10px] text-primary hover:underline font-semibold">Mark all read</button>
+                  )}
+                  <span className="text-[10px] bg-primary-soft text-primary font-bold px-2 py-0.5 rounded-full">{unreadCount} New</span>
+                </div>
               </div>
               <div className="max-h-[300px] overflow-y-auto hide-scrollbar">
                 {notifications.length === 0 ? (
@@ -129,7 +140,7 @@ const Header = ({ currentUser, setSidebarOpen, onSearchClick }) => {
                       <button 
                         key={n.id} 
                         onClick={() => { setShowNotifications(false); navigate(n.path); }}
-                        className="flex items-start gap-3 px-4 py-3 hover:bg-surface-secondary/50 text-left transition-colors border-b border-border-default/50 last:border-0"
+                        className={`flex items-start gap-3 px-4 py-3 hover:bg-surface-secondary/50 text-left transition-colors border-b border-border-default/50 last:border-0 ${n.time <= clearedAt ? 'opacity-60' : ''}`}
                       >
                         <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${n.type === 'loan' ? 'bg-warning-soft text-warning' : 'bg-success-soft text-success'}`}>
                           {n.type === 'loan' ? <Banknote size={14} /> : <CreditCard size={14} />}

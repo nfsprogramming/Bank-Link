@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Function to check if the user is an admin
+    // Assuming admin role is stored in users collection or determined by a custom claim
+    // Here we check if the user document exists and has role == 'admin'
+    function isAdmin() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Users can read their own profile, admins can read all
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      // Only admins can write/update roles, but users can create their initial profile
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Customers Collection
+    match /customers/{customerId} {
+      // Only admins manage customers
+      allow read, write: if isAdmin();
+    }
+
+    // Loans Collection
+    match /loans/{loanId} {
+      // Admins can read all loans; Users can read only their own loans
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      
+      // Users can apply for a loan (create) but cannot set status to approved themselves
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && request.resource.data.status == 'pending';
+      
+      // Only Admins can approve/reject/settle (update)
+      allow update: if isAdmin();
+      
+      // Nobody deletes loans (append-only/status-based)
+      allow delete: if false;
+    }
+
+    // Payments Collection
+    match /payments/{paymentId} {
+      // Admins can see all payments; Users see only theirs
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      
+      // Users can record payments for their loans
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Only admins can modify/delete payments
+      allow update, delete: if isAdmin();
+    }
+
+    // Analytics Collection (if any)
+    match /analytics/{docId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

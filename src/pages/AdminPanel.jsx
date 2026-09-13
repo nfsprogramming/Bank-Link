@@ -19,6 +19,7 @@ const tabs = [
 const AdminPanel = ({ user }) => {
   const [loans, setLoans] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -34,7 +35,10 @@ const AdminPanel = ({ user }) => {
     const u3 = onSnapshot(collection(db, 'payments'), snap => {
       setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => { u1(); u2(); u3(); };
+    const u4 = onSnapshot(collection(db, 'users'), snap => {
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => { u1(); u2(); u3(); u4(); };
   }, []);
 
   const approved = loans.filter(l => l.status === 'approved');
@@ -61,19 +65,19 @@ const AdminPanel = ({ user }) => {
 
       {/* KPI Summary */}
       {!loading && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex overflow-x-auto snap-x snap-mandatory lg:grid lg:grid-cols-4 gap-4 hide-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
           {[
             { label: 'Total Applications', value: loans.length, icon: <Banknote size={18} />, color: 'text-primary' },
             { label: 'Pending Review', value: pending.length, icon: <Clock size={18} />, color: 'text-warning', alert: pending.length > 0 },
             { label: 'Total Outstanding', value: formatCurrency(totalOutstanding), icon: <AlertTriangle size={18} />, color: 'text-warning' },
             { label: 'Total Collected', value: formatCurrency(totalCollected), icon: <TrendingUp size={18} />, color: 'text-success' },
           ].map((stat, i) => (
-            <div key={i} className={`card flex flex-col gap-3 ${stat.alert ? 'border-warning/30 bg-warning-soft' : ''}`}>
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-text-secondary">{stat.label}</p>
-                <span className={stat.color}>{stat.icon}</span>
+            <div key={i} className={`card shrink-0 w-[75vw] md:w-auto snap-center flex flex-col gap-3 min-w-0 ${stat.alert ? 'border-warning/30 bg-warning-soft' : ''}`}>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-xs font-medium text-text-secondary leading-tight break-words">{stat.label}</p>
+                <span className={`shrink-0 ${stat.color}`}>{stat.icon}</span>
               </div>
-              <p className={`text-2xl font-semibold tabular-nums ${stat.color}`}>{stat.value}</p>
+              <p className={`text-2xl font-semibold tabular-nums ${stat.color} truncate`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -132,7 +136,7 @@ const AdminPanel = ({ user }) => {
             ) : (
               <div className="space-y-2">
                 {loans.slice(0, 5).map(loan => {
-                  const customer = customers.find(c => c.id === loan.customerId);
+                  const customer = customers.find(c => c.id === loan.customerId) || users.find(u => u.id === loan.userId);
                   return (
                     <div key={loan.id} className="flex items-center justify-between py-2 border-b border-border-default last:border-0">
                       <div>

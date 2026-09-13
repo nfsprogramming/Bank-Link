@@ -77,10 +77,38 @@ const Dashboard = ({ user }) => {
         </button>
       </div>
 
+      {/* Mobile Quick Actions (Visible only on mobile) */}
+      <div className="md:hidden grid grid-cols-4 gap-2">
+        <button onClick={() => setActiveView('loans')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface border border-border-default hover:bg-surface-secondary transition-colors">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary">
+            <Plus size={20} />
+          </div>
+          <span className="text-[10px] font-semibold text-text-secondary">Apply</span>
+        </button>
+        <button onClick={() => setActiveView('payments')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface border border-border-default hover:bg-surface-secondary transition-colors">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary">
+            <CreditCard size={20} />
+          </div>
+          <span className="text-[10px] font-semibold text-text-secondary">Pay</span>
+        </button>
+        <button onClick={() => setActiveView('overview')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface border border-border-default hover:bg-surface-secondary transition-colors">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary">
+            <TrendingUp size={20} />
+          </div>
+          <span className="text-[10px] font-semibold text-text-secondary">Insights</span>
+        </button>
+        <button onClick={() => setActiveView('loans')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-surface border border-border-default hover:bg-surface-secondary transition-colors">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary">
+            <Wallet size={20} />
+          </div>
+          <span className="text-[10px] font-semibold text-text-secondary">Loans</span>
+        </button>
+      </div>
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-3 gap-4 md:gap-6 hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
         {/* Outstanding Card */}
-        <div className="card-financial-primary sm:col-span-1 flex flex-col justify-between min-h-[140px]">
+        <div className="card-financial-primary shrink-0 w-[85vw] md:w-auto snap-center flex flex-col justify-between min-h-[140px]">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-white/70">Outstanding Balance</p>
             <TrendingUp size={18} className="text-white/50" />
@@ -93,7 +121,7 @@ const Dashboard = ({ user }) => {
           </div>
         </div>
 
-        <div className="card flex flex-col justify-between min-h-[140px]">
+        <div className="card shrink-0 w-[85vw] md:w-auto snap-center flex flex-col justify-between min-h-[140px]">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-text-secondary">Total Approved</p>
             <Wallet size={18} className="text-text-muted" />
@@ -104,7 +132,7 @@ const Dashboard = ({ user }) => {
           </div>
         </div>
 
-        <div className="card flex flex-col justify-between min-h-[140px]">
+        <div className="card shrink-0 w-[85vw] md:w-auto snap-center flex flex-col justify-between min-h-[140px]">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-text-secondary">Total Paid</p>
             <CheckCircle2 size={18} className="text-success" />
@@ -166,36 +194,62 @@ const Dashboard = ({ user }) => {
               <button onClick={() => setActiveView('loans')} className="btn-primary mt-5">Apply for Loan</button>
             </div>
           ) : (
-            <div className="rounded-xl border border-border-default bg-surface overflow-hidden overflow-x-auto">
-              <table className="w-full text-sm min-w-[500px]">
-                <thead>
-                  <tr className="border-b border-border-default bg-surface-secondary/50">
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Loan</th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Amount</th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">EMI</th>
-                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-default">
-                  {loans.slice(0, 5).map(loan => (
-                    <tr key={loan.id} className="hover:bg-surface-secondary/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <p className="font-mono text-xs text-text-secondary">LN-{loan.id.substring(0, 8).toUpperCase()}</p>
-                        <p className="text-xs text-text-muted mt-0.5">{loan.purpose || '—'}</p>
-                      </td>
-                      <td className="px-6 py-4 text-right tabular-nums font-medium text-text-primary">{formatCurrency(loan.amount)}</td>
-                      <td className="px-6 py-4 text-right tabular-nums text-text-secondary">{formatCurrency(loan.emi || 0)}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className={`status-badge ${
-                          loan.status === 'approved' ? 'status-active' :
-                          loan.status === 'rejected' ? 'status-rejected' :
-                          loan.status === 'completed' ? 'status-completed' : 'status-pending'
-                        }`}>{loan.status}</span>
-                      </td>
+            <div className="space-y-4">
+              {/* Desktop Table */}
+              <div className="hidden md:block rounded-xl border border-border-default bg-surface overflow-hidden overflow-x-auto">
+                <table className="w-full text-sm min-w-[500px]">
+                  <thead>
+                    <tr className="border-b border-border-default bg-surface-secondary/50">
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Loan</th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Amount</th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">EMI</th>
+                      <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border-default">
+                    {loans.slice(0, 5).map(loan => (
+                      <tr key={loan.id} className="hover:bg-surface-secondary/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <p className="font-mono text-xs text-text-secondary">LN-{loan.id.substring(0, 8).toUpperCase()}</p>
+                          <p className="text-xs text-text-muted mt-0.5">{loan.purpose || '—'}</p>
+                        </td>
+                        <td className="px-6 py-4 text-right tabular-nums font-medium text-text-primary">{formatCurrency(loan.amount)}</td>
+                        <td className="px-6 py-4 text-right tabular-nums text-text-secondary">{formatCurrency(loan.emi || 0)}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className={`status-badge ${
+                            loan.status === 'approved' ? 'status-active' :
+                            loan.status === 'rejected' ? 'status-rejected' :
+                            loan.status === 'completed' ? 'status-completed' : 'status-pending'
+                          }`}>{loan.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile List View */}
+              <div className="md:hidden space-y-3">
+                {loans.slice(0, 5).map(loan => (
+                  <div key={loan.id} className="card flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                        loan.status === 'approved' ? 'bg-success-soft text-success' : 'bg-surface-secondary text-text-muted'
+                      }`}>
+                        <Wallet size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">LN-{loan.id.substring(0, 8).toUpperCase()}</p>
+                        <p className="text-xs text-text-muted capitalize">{loan.status}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold tabular-nums text-text-primary">{formatCurrency(loan.amount)}</p>
+                      <p className="text-xs text-text-muted mt-0.5">EMI: {formatCurrency(loan.emi || 0)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -239,32 +293,58 @@ const Dashboard = ({ user }) => {
               <p className="mt-1 text-sm text-text-secondary">Payment records will appear here once recorded.</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-border-default bg-surface overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border-default bg-surface-secondary/50">
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Reference</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Note</th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Amount</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted hidden md:table-cell">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-default">
-                  {payments.map(payment => {
-                    const date = payment.createdAt?.toDate?.() || (payment.createdAt?.seconds ? new Date(payment.createdAt.seconds * 1000) : null);
-                    return (
-                      <tr key={payment.id} className="hover:bg-surface-secondary/30 transition-colors">
-                        <td className="px-6 py-4 font-mono text-xs text-text-secondary">PAY-{payment.id.substring(0, 8).toUpperCase()}</td>
-                        <td className="px-6 py-4 text-text-secondary text-sm">{payment.note || '—'}</td>
-                        <td className="px-6 py-4 text-right font-semibold text-success tabular-nums">+{formatCurrency(payment.amount)}</td>
-                        <td className="px-6 py-4 text-text-muted text-xs hidden md:table-cell">
-                          {date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="space-y-4">
+              {/* Desktop Table */}
+              <div className="hidden md:block rounded-xl border border-border-default bg-surface overflow-hidden overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border-default bg-surface-secondary/50">
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Reference</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Note</th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Amount</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-default">
+                    {payments.map(payment => {
+                      const date = payment.createdAt?.toDate?.() || (payment.createdAt?.seconds ? new Date(payment.createdAt.seconds * 1000) : null);
+                      return (
+                        <tr key={payment.id} className="hover:bg-surface-secondary/30 transition-colors">
+                          <td className="px-6 py-4 font-mono text-xs text-text-secondary">PAY-{payment.id.substring(0, 8).toUpperCase()}</td>
+                          <td className="px-6 py-4 text-text-secondary text-sm">{payment.note || '—'}</td>
+                          <td className="px-6 py-4 text-right font-semibold text-success tabular-nums">+{formatCurrency(payment.amount)}</td>
+                          <td className="px-6 py-4 text-text-muted text-xs">
+                            {date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile List View */}
+              <div className="md:hidden space-y-3">
+                {payments.map(payment => {
+                  const date = payment.createdAt?.toDate?.() || (payment.createdAt?.seconds ? new Date(payment.createdAt.seconds * 1000) : null);
+                  return (
+                    <div key={payment.id} className="card flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
+                          <CreditCard size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-text-primary">Payment</p>
+                          <p className="text-xs text-text-muted mt-0.5">{date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—'}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold tabular-nums text-success">+{formatCurrency(payment.amount)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

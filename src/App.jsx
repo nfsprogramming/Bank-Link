@@ -7,8 +7,7 @@ import Logo from './components/Logo';
 
 import AppShell from './components/AppShell';
 import Dashboard from './pages/Dashboard';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Auth from './pages/Auth';
 import AdminPanel from './pages/AdminPanel';
 import Customers from './pages/Customers';
 import Loans from './pages/Loans';
@@ -78,8 +77,8 @@ function App() {
     return (
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Auth />} />
+          <Route path="/register" element={<Auth />} />
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </Router>

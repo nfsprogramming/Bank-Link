@@ -15,6 +15,7 @@ const Transactions = ({ isAdmin, user }) => {
   const [payments, setPayments] = useState([]);
   const [loans, setLoans] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -30,7 +31,10 @@ const Transactions = ({ isAdmin, user }) => {
     const unsub3 = onSnapshot(collection(db, 'customers'), snap => {
       setCustomers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => { unsub1(); unsub2(); unsub3(); };
+    const unsub4 = onSnapshot(collection(db, 'users'), snap => {
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
   }, [isAdmin, user]);
 
   // Combine payments with approved loans as disbursements
@@ -55,7 +59,7 @@ const Transactions = ({ isAdmin, user }) => {
 
   const filtered = allTransactions.filter(t => {
     const loan = loans.find(l => l.id === t.loanId);
-    const customer = customers.find(c => c.id === t.customerId);
+    const customer = customers.find(c => c.id === t.customerId) || users.find(u => u.id === t.userId) || (loan && (customers.find(c => c.id === loan.customerId) || users.find(u => u.id === loan.userId)));
     return !search ||
       t.id.includes(search) ||
       customer?.name?.toLowerCase().includes(search.toLowerCase());
@@ -82,51 +86,91 @@ const Transactions = ({ isAdmin, user }) => {
           <p className="mt-1 text-sm text-text-secondary">Transactions will appear here as payments are recorded.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border-default bg-surface overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm min-w-[600px]">
-            <thead>
-              <tr className="border-b border-border-default bg-surface-secondary/50">
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Transaction</th>
-                {isAdmin && <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Customer</th>}
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted hidden md:table-cell">Type</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Amount</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted hidden lg:table-cell">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-default">
+          <div className="space-y-4">
+            {/* Desktop Table */}
+            <div className="hidden md:block rounded-xl border border-border-default bg-surface overflow-hidden overflow-x-auto">
+              <table className="w-full text-sm min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-border-default bg-surface-secondary/50">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Transaction</th>
+                    {isAdmin && <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Customer</th>}
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted hidden md:table-cell">Type</th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Amount</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-muted hidden lg:table-cell">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-default">
+                  {filtered.map(txn => {
+                    const loan = loans.find(l => l.id === txn.loanId);
+                    const customer = customers.find(c => c.id === txn.customerId) || users.find(u => u.id === txn.userId) || (loan && (customers.find(c => c.id === loan.customerId) || users.find(u => u.id === loan.userId)));
+                    const typeConfig = transactionTypes[txn.transactionType] || transactionTypes.emi_payment;
+                    const date = txn.createdAt?.toDate?.() || (txn.createdAt?.seconds ? new Date(txn.createdAt.seconds * 1000) : null);
+                    const isDisbursement = txn.transactionType === 'loan_disbursement';
+                    return (
+                      <tr key={txn.id} className="hover:bg-surface-secondary/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <p className="font-mono text-xs text-text-secondary">TXN-{txn.id.substring(0, 8).toUpperCase()}</p>
+                          <p className="text-xs text-text-muted mt-0.5">{txn.note || typeConfig.label}</p>
+                        </td>
+                        {isAdmin && (
+                          <td className="px-6 py-4">
+                            <p className="font-medium text-text-primary">{customer?.name || '—'}</p>
+                          </td>
+                        )}
+                        <td className="px-6 py-4 hidden md:table-cell">
+                          <span className={`text-xs font-medium ${typeConfig.color}`}>{typeConfig.label}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <span className={`font-semibold tabular-nums ${isDisbursement ? 'text-primary' : 'text-success'}`}>
+                            {isDisbursement ? '-' : '+'}{formatCurrency(txn.amount)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 hidden lg:table-cell text-text-secondary text-xs">
+                          {date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile List View */}
+            <div className="md:hidden space-y-3">
               {filtered.map(txn => {
-                const customer = customers.find(c => c.id === txn.customerId);
+                const loan = loans.find(l => l.id === txn.loanId);
+                const customer = customers.find(c => c.id === txn.customerId) || users.find(u => u.id === txn.userId) || (loan && (customers.find(c => c.id === loan.customerId) || users.find(u => u.id === loan.userId)));
                 const typeConfig = transactionTypes[txn.transactionType] || transactionTypes.emi_payment;
                 const date = txn.createdAt?.toDate?.() || (txn.createdAt?.seconds ? new Date(txn.createdAt.seconds * 1000) : null);
                 const isDisbursement = txn.transactionType === 'loan_disbursement';
+                
                 return (
-                  <tr key={txn.id} className="hover:bg-surface-secondary/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <p className="font-mono text-xs text-text-secondary">TXN-{txn.id.substring(0, 8).toUpperCase()}</p>
-                      <p className="text-xs text-text-muted mt-0.5">{txn.note || typeConfig.label}</p>
-                    </td>
-                    {isAdmin && (
-                      <td className="px-6 py-4">
-                        <p className="font-medium text-text-primary">{customer?.name || '—'}</p>
-                      </td>
-                    )}
-                    <td className="px-6 py-4 hidden md:table-cell">
-                      <span className={`text-xs font-medium ${typeConfig.color}`}>{typeConfig.label}</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`font-semibold tabular-nums ${isDisbursement ? 'text-primary' : 'text-success'}`}>
+                  <div key={txn.id} className="card flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isDisbursement ? 'bg-primary-soft text-primary' : 'bg-success-soft text-success'}`}>
+                        <ArrowRightLeft size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">
+                          {isAdmin ? (customer?.name || typeConfig.label) : typeConfig.label}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`text-xs font-medium ${typeConfig.color}`}>{isDisbursement ? 'Disbursal' : 'Payment'}</span>
+                          <span className="text-xs text-text-muted">•</span>
+                          <span className="text-xs text-text-muted">{date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-bold tabular-nums ${isDisbursement ? 'text-primary' : 'text-success'}`}>
                         {isDisbursement ? '-' : '+'}{formatCurrency(txn.amount)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 hidden lg:table-cell text-text-secondary text-xs">
-                      {date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                    </td>
-                  </tr>
+                      </p>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
       )}
     </div>
   );

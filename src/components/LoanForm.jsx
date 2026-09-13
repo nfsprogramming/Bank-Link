@@ -54,7 +54,7 @@ const LoanForm = ({ userId, onLoanApplied }) => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2 block">Requested Capital</label>
+          <label className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2 block">Sanctioned Amount</label>
           <div className="relative group">
             <span className="absolute left-0 top-1/2 -translate-y-1/2 text-text-disabled pointer-events-none group-focus-within:text-primary transition-colors text-xl font-light">
               <DollarSign size={24} />

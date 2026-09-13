@@ -67,7 +67,7 @@ const Documents = () => {
       );
     } catch (error) {
       console.error("Upload error:", error);
-      setUploadError(error.message);
+      setUploadError('An error occurred while preparing your upload. Please try again.');
       setUploading(false);
     }
   };
@@ -85,7 +85,7 @@ const Documents = () => {
       await deleteDoc(doc(db, 'documents', docId));
     } catch (error) {
       console.error("Delete error:", error);
-      alert('Failed to delete document: ' + error.message);
+      alert('Failed to delete document. You may not have the required permissions.');
     }
   };
 

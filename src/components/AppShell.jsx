@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import CommandPalette from './CommandPalette';
+import MobileBottomNav from './MobileBottomNav';
 
 const AppShell = ({ currentUser, userRole, children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,7 +21,7 @@ const AppShell = ({ currentUser, userRole, children }) => {
   }, []);
 
   return (
-    <div className="flex min-h-screen w-full bg-background font-sans text-text-primary">
+    <div className="flex min-h-screen w-full bg-background font-sans text-text-primary overflow-x-hidden">
       <Sidebar
         currentUser={currentUser}
         userRole={userRole}
@@ -35,10 +36,12 @@ const AppShell = ({ currentUser, userRole, children }) => {
           onSearchClick={() => setCommandOpen(true)}
         />
 
-        <main className="flex-1 p-6 md:p-8 lg:p-10 mx-auto w-full max-w-7xl">
+        <main className="flex-1 p-4 md:p-8 lg:p-10 mx-auto w-full max-w-7xl pb-[calc(env(safe-area-inset-bottom)+80px)] md:pb-8">
           {children}
         </main>
       </div>
+
+      <MobileBottomNav userRole={userRole} />
 
       <CommandPalette
         isOpen={commandOpen}
