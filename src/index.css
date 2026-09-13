@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-background: #F5F3EE;
+  --color-surface: #FFFFFF;
+  --color-surface-secondary: #F8F7F3;
+
+  /* Primary (Deep forest green) */
+  --color-primary: #123C35;
+  --color-primary-hover: #0D302A;
+  --color-primary-soft: #E6F3F0; /* Soft version for backgrounds */
+
+  /* Accent (Muted teal) */
+  --color-accent: #2F8F83;
+  --color-accent-light: #E6F3F0;
+
+  /* Typography Colors */
+  --color-text-primary: #17211F;
+  --color-text-secondary: #68736F;
+  --color-text-muted: #89938F;
+
+  /* Borders */
+  --color-border-default: #E2E4DF;
+
+  /* Semantics */
+  --color-success: #2E7D5B;
+  --color-success-soft: #EAF5F0;
+  
+  --color-warning: #C58A35;
+  --color-warning-soft: #FDF5E6;
+  
+  --color-danger: #C65A5A;
+  --color-danger-soft: #FCE8E8;
+}
+
+.dark {
+  --color-background: #0B1110;
+  --color-surface: #121918;
+  --color-surface-secondary: #1A2220;
+
+  --color-primary: #2F8F83;
+  --color-primary-hover: #3BA194;
+  --color-primary-soft: #123C35;
+
+  --color-accent: #E6F3F0;
+  --color-accent-light: #123C35;
+
+  --color-text-primary: #F5F3EE;
+  --color-text-secondary: #A3B1AC;
+  --color-text-muted: #68736F;
+
+  --color-border-default: #283633;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Minimal, elegant buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-medium transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(18, 60, 53, 0.1);
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    box-shadow: 0 4px 6px -1px rgba(18, 60, 53, 0.15), 0 2px 4px -1px rgba(18, 60, 53, 0.06);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border bg-surface px-5 py-2.5 text-sm font-medium transition-all active:scale-95 disabled:opacity-50;
+    border-color: var(--color-border-default);
+    color: var(--color-text-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-surface-secondary);
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-medium transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    background-color: var(--color-danger);
+    color: #FFFFFF;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background-color: #A94A4A;
+  }
+
+  /* Structural Components */
+  .card {
+    @apply rounded-xl border bg-surface p-6;
+    border-color: var(--color-border-default);
+    box-shadow: 0 1px 3px rgba(23, 33, 31, 0.02), 0 1px 2px rgba(23, 33, 31, 0.01);
+  }
+
+  .card-financial-primary {
+    @apply rounded-xl p-8;
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    box-shadow: 0 4px 6px -1px rgba(18, 60, 53, 0.1), 0 2px 4px -1px rgba(18, 60, 53, 0.06);
+  }
+  
+  /* Inputs */
+  .input-field {
+    @apply w-full rounded-md border bg-surface px-3 py-2 text-sm outline-none transition-all;
+    border-color: var(--color-border-default);
+    color: var(--color-text-primary);
+  }
+  .input-field::placeholder {
+    color: var(--color-text-muted);
+  }
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+  }
+  
+  /* Labels */
+  .label-text {
+    @apply mb-1.5 block text-sm font-medium;
+    color: var(--color-text-secondary);
+  }
+
+  /* Badges */
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .status-paid, .status-completed {
+    background-color: var(--color-success-soft);
+    color: var(--color-success);
+  }
+  .status-pending {
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning);
+  }
+  .status-overdue, .status-rejected {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+  }
+  .status-active, .status-processing {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+  }
+}
+
+/* Utilities */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
