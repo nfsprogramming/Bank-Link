@@ -5,7 +5,7 @@ import {
   BarChart3, FileText, FolderOpen, Activity, Settings, LogOut, X
 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import Logo from './Logo';
 
@@ -14,9 +14,10 @@ const Sidebar = ({ currentUser, userRole, isOpen, setIsOpen }) => {
 
   useEffect(() => {
     if (currentUser?.uid) {
-      getDoc(doc(db, 'users', currentUser.uid)).then(d => {
+      const unsub = onSnapshot(doc(db, 'users', currentUser.uid), d => {
         if (d.exists()) setUserName(d.data().name);
       });
+      return () => unsub();
     }
   }, [currentUser]);
   const adminNav = [
@@ -94,7 +95,9 @@ const Sidebar = ({ currentUser, userRole, isOpen, setIsOpen }) => {
                   {(userName || currentUser?.email || 'U').charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-text-primary leading-tight break-words">{userName || currentUser?.email?.split('@')[0]}</p>
+                  <p className="text-sm font-semibold text-text-primary leading-tight truncate" title={userName || currentUser?.displayName || currentUser?.email}>
+                    {userName || currentUser?.displayName || currentUser?.email?.split('@')[0]}
+                  </p>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mt-1">{userRole}</p>
                 </div>
               </div>

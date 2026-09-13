@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, User, Bell, Shield, Palette } from 'lucide-react';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const tabs = [
   { key: 'profile', label: 'Profile', icon: <User size={16} /> },
@@ -11,6 +13,28 @@ const tabs = [
 const SettingsPage = ({ currentUser, userRole }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [userName, setUserName] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (currentUser?.uid) {
+      getDoc(doc(db, 'users', currentUser.uid)).then(d => {
+        if (d.exists()) setUserName(d.data().name || '');
+      });
+    }
+  }, [currentUser]);
+
+  const handleSaveProfile = async () => {
+    if (!currentUser?.uid) return;
+    setSavingProfile(true);
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), { name: userName });
+      alert('Profile updated successfully');
+    } catch (err) {
+      alert('Failed to update profile: ' + err.message);
+    }
+    setSavingProfile(false);
+  };
 
   const toggleTheme = (newTheme) => {
     setTheme(newTheme);
@@ -57,15 +81,30 @@ const SettingsPage = ({ currentUser, userRole }) => {
               <h2 className="text-lg font-semibold text-text-primary">Profile Information</h2>
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-primary text-2xl font-bold">
-                  {currentUser?.email?.charAt(0).toUpperCase()}
+                  {(userName || currentUser?.email || 'U').charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-semibold text-text-primary">{currentUser?.email?.split('@')[0]}</p>
+                  <p className="font-semibold text-text-primary">{userName || currentUser?.displayName || currentUser?.email?.split('@')[0]}</p>
                   <p className="text-sm text-text-secondary">{currentUser?.email}</p>
                   <span className="mt-1 inline-block status-badge status-active capitalize">{userRole}</span>
                 </div>
               </div>
               <div className="border-t border-border-default pt-6 space-y-4">
+                <div>
+                  <label className="label-text">Full Name</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={userName} 
+                      onChange={e => setUserName(e.target.value)} 
+                      className="input-field" 
+                      placeholder="Enter your full name"
+                    />
+                    <button onClick={handleSaveProfile} disabled={savingProfile} className="btn-secondary whitespace-nowrap">
+                      {savingProfile ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
                 <div>
                   <label className="label-text">Email Address</label>
                   <input type="email" readOnly value={currentUser?.email || ''} className="input-field bg-surface-secondary/50 cursor-not-allowed" />
